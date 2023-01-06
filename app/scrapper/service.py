@@ -1,7 +1,11 @@
-import requests
+import tqdm
+from .utils import extract_numbers_from_string
+from .parsers import OlxParser
+from typing import List, Dict
 from bs4 import BeautifulSoup
-from schemas import Flat
-from typing import List, Dict, Type
+import requests
+from app.mongodb.service import MongoDatabase
+
 
 # |------------------------------------------------------------|#
 
@@ -9,13 +13,33 @@ from typing import List, Dict, Type
 class ScrapperService:
     def __init__(self, url):
         self.url = url
+        self.is_rent = True if 'wynajem' in url else False
 
-    def get_page_html(self) -> str:
-        r = requests.get(self.url)
+    # |------------------------------------------------------------|#
+
+    def get_page_html(self, page: int) -> str:
+        if page == 1:
+            r = requests.get(self.url)
+
+        else:
+            r = requests.get(f"{self.url}?page={page}")
+
         return r.text
 
-    def get_flats_urls(self) -> Dict[str, List[str]]:
-        html = self.get_page_html()
+    # |------------------------------------------------------------|#
+
+    def get_number_of_pages(self) -> int:
+        html = self.get_page_html(1)
+        soup = BeautifulSoup(html, 'html.parser')
+        results = extract_numbers_from_string(
+            soup.find('div', {'data-testid': "total-count"}).text)
+        return (int(results) // 40) + 1
+
+    # |------------------------------------------------------------|#
+
+    def get_flats_urls(self, page: int) -> Dict[str, List[str]]:
+        html = self.get_page_html(page)
+
         soup = BeautifulSoup(html, 'html.parser')
         flats = soup.find_all('a', class_='css-rc5s2u')
 
@@ -33,70 +57,54 @@ class ScrapperService:
             elif href[0] == 'h':
                 flat_urls['otodom'].append(href)
 
-        self.flat_urls = flat_urls
+        return flat_urls
+
+    # |------------------------------------------------------------|#
 
     def get_olx_flat_details(self, url: str) -> List[str]:
         html = requests.get(url).text
         soup = BeautifulSoup(html, 'html.parser')
 
-        flat_data = soup.find_all('li', class_='css-ox1ptj')
-        flat_data = [data.text for data in flat_data]
-        flat_data.append(
-            soup.find('h3', class_='css-19cr6mc-TextStyled er34gjf0').text)
-        flat_data.append(url)
+        try:
+            price = soup.find(
+                'h3', class_='css-19cr6mc-TextStyled er34gjf0').text
+            flat_details = soup.find_all('li', class_='css-ox1ptj')
+            flat_details = [data.text for data in flat_details]
 
-        return Flat(**self.filter_data_from_olx(flat_data))
+            localization = soup.find_all('a', class_='css-tyi2d1')
+            localization = [x.text.split()[-1] for x in localization[-2:]]
 
-    def filter_data_from_olx(self, flat_data: str) -> Dict[str, str]:
-        data = {}
+            return OlxParser().parse(flat_details, price, url, self.is_rent, localization)
 
-        data['owner'] = flat_data[0]
-        data['price'] = int(flat_data[-2].replace('zł', '').replace(' ', ''))
-        data['url'] = self.url + flat_data[-1]
+        except Exception as e:
+            return None
 
-        for i in flat_data[1:-2]:
-            print(i)
-            category, value = i.split(': ')
+    # |------------------------------------------------------------|#
 
-            if category == 'Cena':
-                data['price'] = int(value)
+    def scrap(self, save: bool = False):
 
-            elif category == 'Powierzchnia':
-                value = value.replace(' m²', '')
-                data['area'] = int(value)
+        db = MongoDatabase() if save else None
 
-            elif category == 'Liczba pokoi':
-                if value == 'Kawalerka':
-                    value = 1
-                else:
-                    value = value.split(' ')[0]
-                data['rooms'] = int(value)
+        flats = []
+        pages = self.get_number_of_pages()
 
-            elif category == 'Poziom':
-                if value == 'Parter':
-                    value = 0
-                data['floor'] = int(value)
+        for page in tqdm.trange(1, 3, desc="[Scrapping]", position=0):
+            flat_urls = self.get_flats_urls(page)
 
-            elif category == 'Rodzaj zabudowy':
-                data['type_of_building'] = value
+            for k, flat_url in flat_urls.items():
+                if k == "olx":
+                    for url in flat_url:
+                        flats.append(self.get_olx_flat_details(url))
 
-            elif category == 'Czynsz':
-                data['rent'] = int(value)
+            if save:
+                db.add('offers', 'flat_offers', flats)
+                flats = []
+        return flats
 
-        data['price_per_sqmeter'] = round(data['price'] / data['area'], 2)
-        data['is_rent'] = True if self.url.split(
-            '/')[-2] == 'wynajem' else False
-
-        print(data)
-        return data
-
-    def get_Flats(self) -> List[Type[Flat]]:
-        for url in self.flat_urls['olx']:
-            self.get_olx_flat_details(url)
+    # |------------------------------------------------------------|#
 
 
 scrapper = ScrapperService(
     'https://www.olx.pl/d/nieruchomosci/mieszkania/wynajem/')
 
-scrapper.get_flats_urls()
-scrapper.get_Flats()
+flats = scrapper.scrap(save=True)
