@@ -97,8 +97,12 @@ class ScrapperService:
                         flats.append(self.get_olx_flat_details(url))
 
             if save:
-                db.add('offers', 'flat_offers', flats)
+                try:
+                    db.add('offers', 'flat_offers', flats)
+                except Exception as e:
+                    print(e)
                 flats = []
+
         return flats
 
     # |------------------------------------------------------------|#
