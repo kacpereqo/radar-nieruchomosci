@@ -2,7 +2,7 @@ from .parsers import OlxParser
 from typing import List, Dict
 import requests
 from app.mongodb.service import MongoDatabase
-
+from .constants import CITIES
 
 # |------------------------------------------------------------|#
 
@@ -14,18 +14,18 @@ class ScrapperService:
 
     # |------------------------------------------------------------|#
 
-    def scrap(self, save: bool = False, city_id: int = 0, region_id: int = 0, category_id: int = 0) -> List[Dict]:
+    def scrap(self, city_id: int = 0, region_id: int = 0, category_id: int = 0) -> List[Dict]:
 
         _params = {
             "limit": "40",
             "category_id": "15",
-            "region_id": "15",
+            "region_id": region_id,
             "filtSer_refiners": "spell_checker",
             "sl": "1857d191fc5x1238b41b",
             "sort_by": "filter_float_price:asc",
             "offset": "0",
             "filter_float_price:from": 0,
-            "city_id": "4499",
+            "city_id": city_id,
             "offset": 0,
         }
 
@@ -43,11 +43,13 @@ class ScrapperService:
                 return data
 
             else:
+
                 for offer in json['data']:
+
                     if offer['url'] not in urls:
                         urls.append(offer['url'])
-                        data.append(OlxParser().parse(offer, url=urls[-1]))
-                        return data
+                        data.append(OlxParser().parse(
+                            offer, url=urls[-1], city_id=city_id, region_id=region_id))
 
                 _params['offset'] = _params['offset'] + 40
 
@@ -57,8 +59,23 @@ class ScrapperService:
 
     # |--------------------------------------~----------------------|#
 
+    def scrap_all(self) -> List[Dict]:
+        for region in CITIES:
+            for city in CITIES[region]['cities'].values():
+                print("Scraping: ", CITIES[region]['name'], city['name'])
+
+                flats = self.scrap(city_id=city['id'], region_id=region)
+
+                print("Found: ", len(flats), "flats in", city['name'])
+                print("----------------------------------")
+
+                try:
+                    if flats != []:
+                        self.db.add('offers', 'flat_offers', flats)
+                except Exception as e:
+                    print(e)
+
 
 scrapper = ScrapperService("https://www.olx.pl/api/v1/offers/")
 
-flats = scrapper.scrap(save=True)
-print(flats)
+flats = scrapper.scrap_all()

@@ -18,7 +18,7 @@ class OtoDomParser(Parser):
 
 class OlxParser(Parser):
 
-    def parse(self, offer: Dict, url: str) -> List[Dict[str, str]]:
+    def parse(self, offer: Dict, url: str, city_id: int, region_id: int) -> List[Dict[str, str]]:
         data = {}
 
         word_to_number_en = {
@@ -31,6 +31,8 @@ class OlxParser(Parser):
 
         data['url'] = url.split("/")[-1]
         data['is_owner_is_business'] = offer['business']
+        data['city_id'] = city_id
+        data['region_id'] = region_id
 
         for param in offer['params']:
             if param['key'] == 'floor_select':
