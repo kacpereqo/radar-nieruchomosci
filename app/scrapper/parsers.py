@@ -21,7 +21,7 @@ class OlxParser(Parser):
     def parse(self, offer: Dict, url: str, city_id: int, region_id: int, is_rent: bool) -> List[Dict[str, str]]:
         data = {}
 
-        word_to_number_en = {
+        _word_to_number_en = {
             'one': 1,
             'two': 2,
             'three': 3,
@@ -54,6 +54,6 @@ class OlxParser(Parser):
                 data['built_type'] = param['value']['key']
 
             elif param['key'] == 'rooms':
-                data['rooms'] = word_to_number_en[param['value']['key']]
+                data['rooms'] = _word_to_number_en[param['value']['key']]
 
         return data

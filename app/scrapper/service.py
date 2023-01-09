@@ -1,7 +1,10 @@
-from .parsers import OlxParser
-from typing import List, Dict
+from pymongo.errors import BulkWriteError
 import requests
+
+from typing import List, Dict
+
 from app.mongodb.service import MongoDatabase
+from .parsers import OlxParser
 from .constants import CITIES
 
 # |------------------------------------------------------------|#
@@ -68,13 +71,20 @@ class ScrapperService:
                 flats = self.scrap(city_id=city['id'], region_id=region)
 
                 print("Found: ", len(flats), "flats in", city['name'])
-                print("----------------------------------")
 
                 try:
+
                     if flats != []:
                         self.db.add('offers', 'flat_offers', flats)
+                        print("Added: ", len(flats), "flats in", city['name'])
+
+                except BulkWriteError:
+                    pass
+
                 except Exception as e:
                     print(e)
+
+                print("----------------------------------")
 
 
 scrapper = ScrapperService("https://www.olx.pl/api/v1/offers/")

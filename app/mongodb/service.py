@@ -1,4 +1,5 @@
 from pymongo import MongoClient
+
 from datetime import datetime
 
 
@@ -7,7 +8,6 @@ class MongoDatabase():
         DB = "mongodb+srv://dblogin:TI0LJ1nUgFowNt7R@cluster0.9rytgvr.mongodb.net/?retryWrites=true&w=majority"
         self.db = MongoClient(DB)
 
-        # self.db.offers.flat_offers.create_index({'url': 1}, {'unique': True})
         self.create_collection()
 
     def add(self, database: str, collection: str, data) -> None:
