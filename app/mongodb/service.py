@@ -1,5 +1,4 @@
 from pymongo import MongoClient
-
 from datetime import datetime
 
 
@@ -20,3 +19,6 @@ class MongoDatabase():
         except Exception as e:
             print(e)
             pass
+
+    def read(self):
+        return self.db.offers.flat_offers.find()
