@@ -1,4 +1,5 @@
 from pymongo import MongoClient
+from datetime import datetime
 
 
 class MongoDatabase():
@@ -14,8 +15,8 @@ class MongoDatabase():
 
     def create_collection(self) -> None:
         try:
-            self.db.offers.create_collection('flat_offers')
-            self.db.offers.flat_offers.create_index([('url', 1)], unique=True)
+            self.db.offers.flat_offers.create_index(
+                [('url', 1), ('date', 1)], unique=True)
         except Exception as e:
-            # print(e)
+            print(e)
             pass

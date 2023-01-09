@@ -31,6 +31,7 @@ class ScrapperService:
 
         data = []
         urls = []
+        is_rent = True if category_id == 15 else False
 
         s = requests.Session()
 
@@ -49,7 +50,7 @@ class ScrapperService:
                     if offer['url'] not in urls:
                         urls.append(offer['url'])
                         data.append(OlxParser().parse(
-                            offer, url=urls[-1], city_id=city_id, region_id=region_id))
+                            offer, url=urls[-1], city_id=city_id, region_id=region_id, is_rent=is_rent))
 
                 _params['offset'] = _params['offset'] + 40
 
