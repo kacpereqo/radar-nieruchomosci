@@ -1,4 +1,6 @@
+import json
 import requests
+import pprint
 from bs4 import BeautifulSoup
 
 
@@ -16,6 +18,7 @@ class ScrapperCity():
 
     def get_cities(self):
         cities_dict = {}
+        result = []
 
         page = self.get_page()
         soup = BeautifulSoup(page.content, 'html.parser')
@@ -32,11 +35,10 @@ class ScrapperCity():
             cities = soup.find_all('ul', class_='css-1dz1uxb')[2]
 
             for city in cities:
-                city = self.replace_polsish_letters(city.text.split(' ')[0])
-                cities_dict[region].append(city)
+                result.append(city.text.split(' ')[0])
 
-        return cities_dict
+        return result
 
 
 scrapper = ScrapperCity()
-print(scrapper.get_cities())
+pprint.pprint(scrapper.get_cities())

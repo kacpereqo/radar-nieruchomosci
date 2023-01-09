@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Dict
 from datetime import datetime
-from .utils import extract_numbers_from_string
 
 
 class Parser(ABC):
@@ -19,54 +18,38 @@ class OtoDomParser(Parser):
 
 class OlxParser(Parser):
 
-    def parse(self, flat_details: str, price: str, url: str, is_rent: bool, localization: List) -> List[Dict[str, str]]:
+    def parse(self, offer: Dict, url: str) -> List[Dict[str, str]]:
         data = {}
 
-        data['url'] = url
-        data['is_rent'] = is_rent
-        data['owner'] = flat_details[0]
-        data['price'] = self.get_price(price)
-        data['state'] = localization[0]
-        data['city'] = localization[1]
-        data['date'] = datetime.now()
+        word_to_number_en = {
+            'one': 1,
+            'two': 2,
+            'three': 3,
+            'four': 4,
+            'five': 5,
+        }
 
-        for i in flat_details[1:]:
-            category, value = i.split(': ')
+        data['url'] = url.split("/")[-1]
+        data['is_owner_is_business'] = offer['business']
 
-            if category == 'Powierzchnia':
-                data['area'] = self.get_area(value)
+        for param in offer['params']:
+            if param['key'] == 'floor_select':
+                data['floor'] = param['value']['label']
 
-            elif category == 'Liczba pokoi':
-                data['rooms'] = self.get_rooms(value)
+            if param['key'] == 'furniture':
+                data['is_furnished'] = True if param['value']['key'] == 'yes' else False
 
-            elif category == 'Poziom':
-                data['floor'] = self.get_floor(value)
+            elif param['key'] == 'price':
+                data['price'] = param['value']['value']
+                data['currency'] = param['value']['currency']
 
-            elif category == 'Rodzaj zabudowy':
-                data['type_of_building'] = value
+            elif param['key'] == 'm':  # area
+                data['area'] = param['value']['key']
 
-        data['price_per_sqmeter'] = round(data['price'] / data['area'], 2)
+            elif param['key'] == 'builttype':
+                data['built_type'] = param['value']['key']
+
+            elif param['key'] == 'rooms':
+                data['rooms'] = word_to_number_en[param['value']['key']]
 
         return data
-
-    def get_area(self, data: str) -> float:
-        area = float(extract_numbers_from_string(data))
-        return area
-
-    def get_rooms(self, data: str) -> int:
-        if data == 'Kawalerka':
-            rooms = 1
-        else:
-            rooms = int(extract_numbers_from_string(data))
-        return rooms
-
-    def get_floor(self, data: str) -> int:
-        if data == 'Parter':
-            floor = 0
-        else:
-            floor = int(extract_numbers_from_string(data))
-        return floor
-
-    def get_price(self, data: str) -> int:
-        price = float(extract_numbers_from_string(data))
-        return price
