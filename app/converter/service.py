@@ -1,24 +1,42 @@
 import ujson
 
+import io
+import gzip
 import csv
-import xml
 
 from app.mongodb.service import MongoDatabase
+
+# |------------------------------------------------------------|#
 
 
 class Converter():
     def __init__(self) -> None:
-        self.data = MongoDatabase().read()
+        self.client = MongoDatabase()
+
+# |------------------------------------------------------------|#
 
     def convert_to_csv(self):
-        header = ["_id", "url", "is_owner_is_business", "city_id", "region_id", "is_rent",
-                  "date", "price", "currency", "area", "rooms", "floor", "is_furnished", "built_type"]
+        header = ["is_owner_is_business", "city_id", "region_id", "is_rent",
+                  "date", "price", "area", "rooms", "floor", "is_furnished", "built_type"]
 
-        with open("test.csv", "w") as f:
-            writer = csv.DictWriter(f, fieldnames=header)
+        schema = {
+            "_id": 0,
+            "url": 0,
+            "currency": 0,
+        }
+
+        data = self.client.db.offers.flat_offers.find({}, schema)
+
+        with gzip.GzipFile("test.gz", mode='wb', compresslevel=6) as gz:
+            buff = io.StringIO()
+
+            writer = csv.DictWriter(buff, fieldnames=header)
             writer.writeheader()
-            for offer in self.data:
-                writer.writerow(offer)
+
+            writer.writerows(data)
+            gz.write(buff.getvalue().encode('utf-8'))
+
+# |------------------------------------------------------------|#
 
     def convert_to_json(self):
         json = {}
@@ -31,7 +49,9 @@ class Converter():
         with open("test.json", "w", encoding='utf-8') as f:
             ujson.dump(json, f)
 
+# |------------------------------------------------------------|#
+
 
 converter = Converter()
-# converter.convert_to_csv()
-converter.convert_to_json()
+converter.convert_to_csv()
+# converter.convert_to_json()

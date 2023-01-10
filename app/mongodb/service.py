@@ -9,8 +9,12 @@ class MongoDatabase():
 
         self.create_collection()
 
+# |------------------------------------------------------------|#
+
     def add(self, database: str, collection: str, data) -> None:
         self.db[database][collection].insert_many(data)
+
+# |------------------------------------------------------------|#
 
     def create_collection(self) -> None:
         try:
@@ -20,5 +24,9 @@ class MongoDatabase():
             print(e)
             pass
 
+# |------------------------------------------------------------|#
+
     def read(self):
         return self.db.offers.flat_offers.find()
+
+# |------------------------------------------------------------|#

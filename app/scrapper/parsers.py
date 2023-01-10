@@ -9,11 +9,15 @@ class Parser(ABC):
     def parse(self, html: str) -> List[Dict[str, str]]:
         pass
 
+# |------------------------------------------------------------|#
+
 
 class OtoDomParser(Parser):
 
     def parse(self, html: str) -> List[Dict[str, str]]:
         pass
+
+# |------------------------------------------------------------|#
 
 
 class OlxParser(Parser):
@@ -78,3 +82,5 @@ class OlxParser(Parser):
                 data['rooms'] = _word_to_number_en[param['value']['key']]
 
         return data
+
+# |------------------------------------------------------------|#

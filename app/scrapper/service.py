@@ -86,6 +86,8 @@ class ScrapperService:
 
                 print("----------------------------------")
 
+    # |------------------------------------------------------------|#
+
 
 scrapper = ScrapperService("https://www.olx.pl/api/v1/offers/")
 
