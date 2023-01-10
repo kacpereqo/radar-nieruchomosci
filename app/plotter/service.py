@@ -22,5 +22,3 @@ class Plotter():
 
 
 plotter = Plotter()
-# group by city_id
-df = plotter.df.groupby('city_id')
