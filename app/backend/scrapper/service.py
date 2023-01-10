@@ -3,7 +3,7 @@ import requests
 
 from typing import List, Dict
 
-from app.mongodb.service import MongoDatabase
+from backend.mongodb.service import MongoDatabase
 from .parsers import OlxParser
 from .constants import CITIES
 
@@ -11,8 +11,8 @@ from .constants import CITIES
 
 
 class ScrapperService:
-    def __init__(self, url):
-        self.url = url
+    def __init__(self):
+        self.url = "https://www.olx.pl/api/v1/offers/"
         self.db = MongoDatabase()
 
     # |------------------------------------------------------------|#
@@ -47,10 +47,9 @@ class ScrapperService:
                 return data
 
             else:
-
                 for offer in json['data']:
-
                     if offer['url'] not in urls:
+
                         urls.append(offer['url'])
                         data.append(OlxParser().parse(
                             offer, url=urls[-1], city_id=city_id, region_id=region_id, is_rent=is_rent))
@@ -89,6 +88,6 @@ class ScrapperService:
     # |------------------------------------------------------------|#
 
 
-scrapper = ScrapperService("https://www.olx.pl/api/v1/offers/")
+scrapper = ScrapperService()
 
 flats = scrapper.scrap_all()

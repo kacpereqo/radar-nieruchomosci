@@ -4,7 +4,7 @@ import io
 import gzip
 import csv
 
-from app.mongodb.service import MongoDatabase
+from backend.mongodb.service import MongoDatabase
 
 # |------------------------------------------------------------|#
 

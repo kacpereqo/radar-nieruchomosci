@@ -3,7 +3,7 @@ from pymongoarrow.api import Schema
 import pandas as pd
 from datetime import datetime
 
-from app.mongodb.service import MongoDatabase
+from backend.mongodb.service import MongoDatabase
 
 
 class Plotter():

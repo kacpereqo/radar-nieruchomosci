@@ -12,17 +12,10 @@ class Parser(ABC):
 # |------------------------------------------------------------|#
 
 
-class OtoDomParser(Parser):
-
-    def parse(self, html: str) -> List[Dict[str, str]]:
-        pass
-
-# |------------------------------------------------------------|#
-
-
 class OlxParser(Parser):
 
     def parse(self, offer: Dict, url: str, city_id: int, region_id: int, is_rent: bool) -> List[Dict[str, str]]:
+
         data = {}
 
         _word_to_number_en = {
