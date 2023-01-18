@@ -1,9 +1,26 @@
-<script setup>
-import TheWelcome from "../components/TheWelcome.vue";
+<template>
+  <div class="wrapper">
+    <Chart />
+  </div>
+</template>
+
+<script>
+import Chart from '@/components/Chart.vue';
+
+export default {
+  name: 'HomeView',
+  components: {
+    Chart,
+  },
+};
+
 </script>
 
-<template>
-  <main>
-    <TheWelcome />
-  </main>
-</template>
+
+<style scoped>
+.wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+</style>
