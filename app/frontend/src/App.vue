@@ -18,8 +18,15 @@ export default {
 
 <style>
 .wrapper {
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
   flex: 1;
+}
+
+* {
+  position: relative;
+  z-index: 10;
 }
 
 #app {

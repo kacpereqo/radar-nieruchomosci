@@ -2,8 +2,8 @@
     <nav class="nav-wrapper">
         <img src="@/assets/logo.png" alt="logo" class="logo" />
         <div class="links">
-            <router-link to="/">Analiza 📈</router-link>
-            <router-link to="/about">Dane 💾</router-link>
+            <router-link active-class="active" to="/">Analiza 📈</router-link>
+            <router-link active-class="active" to="/data">Dane 💾</router-link>
         </div>
 
     </nav>
@@ -31,8 +31,9 @@ export default {
 .logo {
     margin: 0 1rem;
     position: absolute;
-    height: 50px;
-    widows: 50px;
+    height: 48px;
+    widows: 48px;
+    line-height: 54px;
 
 }
 
@@ -49,5 +50,9 @@ export default {
     font-size: 1.25rem;
     padding: 0 1rem;
     line-height: 54px;
+}
+
+.active {
+    background-color: white !important;
 }
 </style>
